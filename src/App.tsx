@@ -1,60 +1,46 @@
 import "./App.css";
+import { Route, Routes } from "react-router";
 
-import React, { useEffect, useState } from "react";
-import { Routes, Route } from "react-router";
-
-// import oauth from "axios-oauth-client";
+import Navbar from "./components/layout/Navbar";
+import AuthInstagramProvider from "./context/authInstagramContext";
 import Home from "./pages/Home";
-const client_id = "359294529284647";
-const client_secret = "d43b1fce076bb4c522f70de3cb7a1ab5";
-const redirectURI = "https://localhost:3000/";
+import LoginPage from "./pages/LoginPage";
+import HandleCodeIG from "./pages/HandleCodeIG";
+import { useContext, useEffect } from "react";
+import { AuthInstagramContext } from "./context/authInstagramContext";
 
 function App() {
-  const [accessToken, setAccessToken] = useState("");
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    // const Url = ;
-    let code = window.location.href.match(/code=([^&]*)/);
-    if (code) {
-      const codeRes = code[1];
-      const codeFormatted = codeRes.replace("#_", "");
-      setAccessToken(codeFormatted);
-    }
-
-    setIsMounted(true);
-  }, [accessToken]);
-
-  useEffect(() => {
-    (async () => {
-      if (accessToken) {
-        const data = {
-          client_secret,
-          client_id: client_id,
-          grant_type: "authorization_code",
-          redirect_uri: "https://localhost:3000/",
-          code: accessToken,
-        };
-        console.log(data);
-      }
-    })();
-  }, [accessToken]);
-
-  const getAuthCode = async () => {
-    window.open(
-      "http://192.168.0.4:443/api/ig/authorize",
-      "_blank",
-      "location=yes,height=570,width=520,scrollbars=yes,status=yes"
-    );
-  };
-
   return (
     <>
-      <Routes>
-        <Route path="/" element={<Home />} />
-      </Routes>
+      <AppState>
+        <Navbar />
+        <AppRouter />
+      </AppState>
     </>
   );
 }
+
+const AppRouter = () => {
+  const authIg = useContext(AuthInstagramContext);
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/handle-code" element={<HandleCodeIG />} />
+      {authIg.authIGStatus !== "unauthorized" && (
+        <>
+          <Route path="/" element={<Home />} />
+        </>
+      )}
+    </Routes>
+  );
+};
+
+const AppState = ({ children }: any) => {
+  return (
+    <>
+      <AuthInstagramProvider>{children}</AuthInstagramProvider>
+    </>
+  );
+};
 
 export default App;
