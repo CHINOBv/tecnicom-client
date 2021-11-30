@@ -1,8 +1,6 @@
-import moment from "moment";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import useMedias from "../../hooks/useMedias";
 import Post from "./Post";
-moment().locale("es");
 function Posts() {
   const medias = useMedias();
   return (
@@ -16,7 +14,7 @@ function Posts() {
             ))}
           </div>
         ) : (
-          <h1 className="text-light">No tienes posts</h1>
+          <h1 className="text-light text-center">No tienes posts</h1>
         )}
       </div>
     </>

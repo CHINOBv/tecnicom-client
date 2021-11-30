@@ -52,7 +52,7 @@ function Navbar() {
                     </Link>
                   ) : (
                     <a
-                      href="javascript:void(0)"
+                      href="#_"
                       className="nav-link"
                       onClick={() => {
                         logout();
