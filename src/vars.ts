@@ -1,1 +1,1 @@
-export const apiUrl = "https://069436001bc01c.localhost.run";
+export const apiUrl = "https://cd31606031793d.localhost.run";

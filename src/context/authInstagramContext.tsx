@@ -1,5 +1,7 @@
 import { createContext, useEffect, useState } from "react";
+
 import fetchApi from "../services/fetchApi";
+import fetchInstagram from "../services/fetchInstagram";
 
 export type TAuthIGStatus =
   | "unavailable"
@@ -21,6 +23,9 @@ export interface IAuthInstagramContext {
 
 export interface IUserIG {
   id: string;
+  userName?: string;
+  accountType?: string;
+  mediaCount?: number;
 }
 
 export const AuthInstagramContext = createContext({} as IAuthInstagramContext);
@@ -37,7 +42,7 @@ const AuthInstagramProvider = ({ children }: any) => {
     setAccessCode("");
     setAccessToken("");
     setUserIG({} as IUserIG);
-    setAuthIGStatus("unavailable");
+    setAuthIGStatus("unauthorized");
     localStorage.clear();
   };
 
@@ -45,27 +50,29 @@ const AuthInstagramProvider = ({ children }: any) => {
     if (authIGStatus !== "loading") {
       if (accessCode && !accessToken) {
         setAuthIGStatus("loading");
-        fetchApi
-          .post(`/ig/authorize-token?code=${accessCode}`)
-          .then((response) => {
-            if (response.status === 200) {
-              setAccessToken(response.data.access_token);
-              localStorage.setItem("accessToken", response.data.access_token);
-              setUserIG((pv) => ({
-                ...pv,
-                id: response.data.user_id,
-              }));
-              setAuthIGStatus("available");
-              console.log(response.data);
-            }
-          })
-          .catch((error) => {
-            console.log(error);
-            setAuthIGStatus("unauthorized");
-          });
+        getToken(accessCode);
       }
     }
   }, [accessCode, accessToken, authIGStatus]);
+
+  const getToken = (code: string) => {
+    setAuthIGStatus("loading");
+    return fetchApi
+      .post(`/ig/authorize-token?code=${code}`)
+      .then((response) => {
+        if (response.status === 200) {
+          setAccessToken(response.data.access_token);
+          setUserIG((pv) => ({ ...pv, id: response.data.user_id }));
+          localStorage.setItem("accessToken", response.data.access_token);
+          localStorage.setItem("userId", response.data.user_id);
+          console.log(response.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        setAuthIGStatus("unauthorized");
+      });
+  };
 
   useEffect(() => {
     if (!accessToken) {
@@ -75,7 +82,6 @@ const AuthInstagramProvider = ({ children }: any) => {
         ?.replace("undefined", "");
       if (accessTokenLs) {
         setAccessToken(accessTokenLs);
-        setAuthIGStatus("available");
         return;
       }
       setAuthIGStatus("unauthorized");
@@ -88,12 +94,42 @@ const AuthInstagramProvider = ({ children }: any) => {
         ?.replace("undefined", "");
       if (accessCodeLs) {
         setAccessCode(accessCodeLs);
-        setAuthIGStatus("loading");
         return;
       }
       setAuthIGStatus("unauthorized");
     }
   }, [accessCode, accessToken, authIGStatus]);
+
+  useEffect(() => {
+    if (!userIG.userName) {
+      const userIdLs = localStorage.getItem("userId")?.replace("undefined", "");
+      if (userIdLs) {
+        getUserInfo(userIdLs);
+      }
+    }
+  }, [userIG]);
+
+  const getUserInfo = (userId: string) => {
+    setAuthIGStatus("loading");
+    return fetchInstagram(`/${userId}?fields=username,account_type,media_count`)
+      .then((response) => {
+        if (response.status === 200) {
+          const { username, account_type, media_count, id } = response.data;
+          setUserIG({
+            id,
+            userName: username,
+            accountType: account_type,
+            mediaCount: media_count,
+          });
+          setAuthIGStatus("available");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        setAuthIGStatus("unauthorized");
+        logout();
+      });
+  };
 
   return (
     <AuthInstagramContext.Provider

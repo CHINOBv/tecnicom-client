@@ -2,6 +2,18 @@ import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthInstagramContext } from "../../context/authInstagramContext";
 
+const LoggedNav = () => {
+  return (
+    <>
+      <li className="nav-item">
+        <Link className="nav-link" aria-current="page" to="/">
+          Posts
+        </Link>
+      </li>
+    </>
+  );
+};
+
 function Navbar() {
   const { authIGStatus, logout } = useContext(AuthInstagramContext);
   const nav = useNavigate();
@@ -20,27 +32,19 @@ function Navbar() {
           >
             <span className="navbar-toggler-icon" />
           </button>
+          <Link
+            className="navbar-brand"
+            to={authIGStatus !== "unauthorized" ? "/" : "login"}
+          >
+            Tecnicom
+          </Link>
           <div
-            className="collapse navbar-collapse d-flex justify-content-between"
+            className="collapse navbar-collapse d-md-flex justify-content-between"
             id="navbarTogglerDemo01"
           >
-            <Link
-              className="navbar-brand"
-              to={authIGStatus !== "unauthorized" ? "/" : "login"}
-            >
-              Tecnicom
-            </Link>
             <div>
               <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                <li className="nav-item">
-                  <Link
-                    className="nav-link"
-                    aria-current="page"
-                    to={authIGStatus !== "unauthorized" ? "/" : "login"}
-                  >
-                    Posts
-                  </Link>
-                </li>
+                {authIGStatus !== "unauthorized" && <LoggedNav />}
                 <li className="nav-item">
                   {authIGStatus === "unauthorized" ? (
                     <Link className="nav-link" to="/login">

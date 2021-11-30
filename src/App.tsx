@@ -6,14 +6,16 @@ import AuthInstagramProvider from "./context/authInstagramContext";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import HandleCodeIG from "./pages/HandleCodeIG";
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { AuthInstagramContext } from "./context/authInstagramContext";
+import LoadingPage from "./pages/LoadingPage";
+import MediasProvider from "./context/mediasContext";
+import PostPage from "./pages/PostPage";
 
 function App() {
   return (
     <>
       <AppState>
-        <Navbar />
         <AppRouter />
       </AppState>
     </>
@@ -22,23 +24,38 @@ function App() {
 
 const AppRouter = () => {
   const authIg = useContext(AuthInstagramContext);
+
+  if (authIg.authIGStatus === "loading") {
+    return <LoadingPage />;
+  }
+
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/handle-code" element={<HandleCodeIG />} />
-      {authIg.authIGStatus !== "unauthorized" && (
-        <>
-          <Route path="/" element={<Home />} />
-        </>
-      )}
-    </Routes>
+    <>
+      <Navbar />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/handle-code" element={<HandleCodeIG />} />
+        {authIg.authIGStatus !== "unauthorized" ? (
+          <>
+            <Route path="/" element={<Home />} />
+            <Route path="/post/:id/:type" element={<PostPage />} />
+          </>
+        ) : (
+          <>
+            <Route path="/" element={<LoginPage />} />
+          </>
+        )}
+      </Routes>
+    </>
   );
 };
 
 const AppState = ({ children }: any) => {
   return (
     <>
-      <AuthInstagramProvider>{children}</AuthInstagramProvider>
+      <AuthInstagramProvider>
+        <MediasProvider>{children}</MediasProvider>
+      </AuthInstagramProvider>
     </>
   );
 };
