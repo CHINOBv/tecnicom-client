@@ -25,7 +25,7 @@ function PostPage() {
         });
         Promise.all(queueFetch)
           .then((data) => {
-            console.log("Childs", data);
+            // console.log("Childs", data);
             const images = data.map((child: any) => {
               return child.data;
             });
